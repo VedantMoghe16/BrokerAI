@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broker Copilot - Renewal Orchestration Assistant</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        /* Add this inside your <style> tag */
+.cal-selected {
+    background-color: #4a90e2 !important; /* Bright Blue */
+    color: white !important;
+    font-weight: bold;
+    border-color: #357abd;
+}
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .label {
+            color: #999;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .tab-btn.active:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .content-panel {
+            display: none;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        .renewal-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .renewal-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .renewal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .client-info h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .client-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .priority-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .priority-high {
+            background: #fee;
+            color: #c00;
+        }
+
+        .priority-medium {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .priority-low {
+            background: #dfe6e9;
+            color: #2d3436;
+        }
+
+        .renewal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-item .label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .detail-item .value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .score-breakdown {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .renewal-card.expanded .score-breakdown {
+            display: block;
+        }
+
+        .factor {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .factor-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .factor-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .factor-bar {
+            width: 100px;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .factor-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+        }
+
+        .brief-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .brief-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .brief-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .source-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .source-link:hover {
+            background: #1976d2;
+            color: white;
+        }
+
+        .action-list {
+            list-style: none;
+        }
+
+        .action-list li {
+            padding: 12px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #4caf50;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.bot {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message .sources {
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .template-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+
+        .template-preview {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .confidence-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .confidence-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
+        }
+
+        /* Fixed: Moved Calendar CSS outside of the media query so it works on desktop */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .cal-cell {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: right;
+            cursor: pointer;
+            background: white;
+            min-height: 80px;
+        }
+        .cal-today { background: #dff0ff; }
+        .cal-has-event { background: #ffeaa7; }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .renewal-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <style>
+        /* Professional Calendar Styling */
+        #calendar {
+            max-width: 100%;
+            margin: 20px auto;
+            padding: 0 10px;
+            background: white;
+            min-height: 600px;
+        }
+
+        /* FORCE EVENTS TO BE CLICKABLE */
+        .fc-event {
+            z-index: 100 !important;
+            cursor: pointer;
+            pointer-events: auto !important;
+        }
+
+        /* Push the background grid down */
+        .fc-daygrid-day-frame {
+            z-index: 1;
+        }
+        /* Google Events = Blue, App Events = Green */
+        .fc-event-google {
+            background-color: #4285F4 !important;
+            border-color: #4285F4 !important;
+        }
+        .fc-event-local {
+            background-color: #2ecc71 !important;
+            border-color: #2ecc71 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Broker Copilot</h1>
+            <p>Intelligent Renewal Orchestration Assistant | Zero-Persistence Architecture | Connector-First Design</p>
+        </div>
+        <div style="background: white; padding: 12px 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+    
+            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <span style="font-weight: 700; color: #444; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                    ⚡ System Integrations
+                </span>
+                
+                <div id="integrations-list" style="display: flex; gap: 15px; align-items: center;">
+                    <div class="sys-item">
+                        <span style="font-size: 16px;">☁️</span> <span class="sys-name">Salesforce</span> <span class="dot green"></span>
+                    </div>
+        
+                    <div class="sys-item" id="status-mail">
+                        <span style="font-size: 16px;">✉️</span> <span class="sys-name">Mail</span> <span class="dot grey"></span>
+                    </div>
+        
+                    <div class="sys-item" id="status-cal">
+                        <span style="font-size: 16px;">📅</span> <span class="sys-name">Calendar</span> <span class="dot grey"></span>
+                    </div>
+        
+                    <div class="sys-item">
+                        <span style="font-size: 16px;">🛡️</span> <span class="sys-name">Applied Epic</span> <span class="dot green"></span>
+                    </div>
+                </div>
+            </div>
+        
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="sync-status-text" style="font-size: 12px; color: #888; display:none;">Syncing live data...</span>
+        
+                <div id="auth-section">
+                    <a id="google-login-btn" href="/google/login" class="btn-google">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="16">
+                        Connect Google
+                    </a>
+                    <span id="google-status" style="display: none; align-items: center; gap: 10px; background: #e6fffa; padding: 6px 12px; border-radius: 6px; border: 1px solid #b2f5ea;">
+                        <span style="color: #27ae60; font-weight: 600; font-size: 13px;">✅ Workspace Active</span>
+                        <a href="/logout" style="font-size: 11px; color: #e74c3c; text-decoration: none; font-weight: bold;">LOGOUT</a>
+                    </span>
+                </div>
+        
+                <div style="width: 1px; height: 24px; background: #eee;"></div>
+        
+                <button onclick="triggerSync()" class="btn-sync">
+                    🔄 Sync
+                </button>
+            </div>
+        </div>
+        
+        <style>
+            .sys-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #f8f9fa; padding: 4px 10px; border-radius: 6px; border: 1px solid #eee; }
+            .sys-name { font-weight: 600; }
+            .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+            .dot.green { background-color: #2ecc71; box-shadow: 0 0 5px rgba(46, 204, 113, 0.4); }
+            .dot.grey { background-color: #bdc3c7; }
+            
+            .btn-google { text-decoration: none; background: #4285F4; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+            .btn-google:hover { background: #357abd; box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3); }
+        
+            .btn-sync { background: white; border: 1px solid #ddd; color: #555; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+            .btn-sync:hover { background: #f0f0f0; border-color: #ccc; }
+        </style>
+
+</div>
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Renewals</div>
+                <div class="value" id="stat-total">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Urgent (< 30 days)</div>
+                <div class="value" id="stat-urgent">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Premium at Risk</div>
+                <div class="value" id="stat-premium">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Avg Premium</div>
+                <div class="value" id="stat-avg">-</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('pipeline')">📊 Renewal Pipeline</button>
+            <button class="tab-btn" onclick="switchTab('brief')">📄 Renewal Brief</button>
+            <button class="tab-btn" onclick="switchTab('qa')">💬 Q&A Assistant</button>
+            <button class="tab-btn" onclick="switchTab('templates')">✉️ Email Templates</button>
+            <button class="tab-btn" onclick="switchTab('calendar')">📅 Calendar</button>
+
+        </div>
+
+        <div id="pipeline-panel" class="content-panel active">
+            <h2 style="margin-bottom: 20px;">Renewal Pipeline</h2>
+            
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <label>Filter by days ahead: </label>
+                <select id="days-filter" onchange="loadRenewals()">
+                    <option value="30">30 days</option>
+                    <option value="90">90 days</option>
+                    <option value="180" selected>180 days</option>
+                    <option value="365">365 days</option>
+                </select>
+        
+                <label style="margin-left: 15px;">Filter by priority: </label>
+                <select id="priority-filter" onchange="loadRenewals()">
+                    <option value="All">All</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+        
+            
+            </div>
+        
+        
+        
+            <div id="renewals-list"></div>
+        </div>
+
+        <div id="brief-panel" class="content-panel">
+            <div class="brief-container">
+                <h2 style="margin-bottom: 20px;">One-Page Renewal Brief</h2>
+                <p style="margin-bottom: 20px; color: #666;">Select a renewal from the pipeline to generate a comprehensive brief with full source traceability.</p>
+                <div id="brief-content"></div>
+            </div>
+        </div>
+
+        <div id="qa-panel" class="content-panel">
+            <h2 style="margin-bottom: 20px;">Connector-Backed Q&A</h2>
+            <p style="margin-bottom: 15px; color: #666;">Ask questions about policies, renewals, communications, or claims. All answers are sourced from live connectors.</p>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot">
+                        <strong>Broker Copilot:</strong><br>
+                        Hello! I can help you with information about renewals, policies, emails, and claims. Try asking:
+                        <ul style="margin-top: 10px;">
+                            <li>"What's the status of policy SCR-76fd0b40a1cb?"</li>
+                            <li>"Show me emails for this placement"</li>
+                            <li>"What's the claims history?"</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+        
+
+        <div id="templates-panel" class="content-panel">
+            <h2 style="margin-bottom: 20px;">Email Templates</h2>
+            <p style="margin-bottom: 15px; color: #666;">Generate personalized outreach emails with auto-filled policy data.</p>
+            
+            <label>Select Template:</label>
+            <select class="template-select" id="template-select" onchange="loadTemplate()">
+                <option value="">-- Choose a template --</option>
+            </select>
+
+            <label>Placement ID:</label>
+            <input type="text" class="chat-input" id="placement-id-input" placeholder="e.g., SCR-76fd0b40a1cb" style="margin-bottom: 15px;">
+
+            <button class="btn btn-primary" onclick="renderTemplate()">Generate Email</button>
+            <button class="btn btn-primary" style="margin-left:10px" onclick="sendEmail()">
+    📤 Send via Gmail
+</button>
+</div>
+<div id="conversation-context" style="display:none; margin-bottom:20px;">
+    <div id="conversation-badge"
+         style="display:inline-block; padding:6px 12px; border-radius:20px; font-weight:600; font-size:13px; margin-bottom:10px;">
+    </div>
+
+    <div id="conversation-emails"
+         style="background:#f8f9fa; border-radius:10px; padding:15px; max-height:220px; overflow-y:auto;">
+    </div>
+    #conversation-context {
+        display: none;
+    }
+    
+</div>
+
+            <div id="email-editor" style="display: none; margin-top: 20px;">
+                <label style="font-weight: bold;">Subject:</label>
+                <input type="text" id="email-subject" class="chat-input" style="width: 100%; margin-bottom: 10px; font-weight: bold;">
+                
+                <label style="font-weight: bold;">Email Body:</label>
+                <textarea id="email-body" class="chat-input" style="width: 100%; height: 300px; font-family: 'Segoe UI', sans-serif; line-height: 1.5; resize: vertical;"></textarea>
+                
+                <div style="margin-top: 15px; text-align: right;">
+                    <span id="email-status" style="margin-right: 10px; font-weight: bold; display:none;"></span>
+                    <button class="btn btn-primary" onclick="sendEmail()">📤 Send via Gmail</button>
+                </div>
+            </div>
+
+       
+
+            <div id="calendar-panel" class="content-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>📅 Schedule & Reminders</h2>
+                    <button onclick="openEventModal()" class="btn btn-primary" style="background: #2ecc71; border: none;">
+                        + Add New Event
+                    </button>
+                </div>
+                <div id="calendar-root" style="background: white; padding: 15px; border-radius: 8px; min-height: 650px;"></div>
+        
+            
+            
+        
+            </div>
+            
+            <div id="eventModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+                <div style="background-color: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                    <h3 style="margin-top: 0; margin-bottom: 20px;">Add New Event</h3>
+                    
+                    <label style="font-weight: bold; font-size: 13px;">Event Title:</label>
+                    <input type="text" id="modal-title" class="chat-input" style="width: 100%; margin-bottom: 15px;" placeholder="e.g., Client Renewal Call">
+                    <div id="viewEventModal"
+     onclick="event.stopPropagation()"
+     style="display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px);">
+
+     <div onclick="event.stopPropagation()"
+     style="background-color: white; margin: 10% auto; padding: 0; border-radius: 12px; width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow: hidden; animation: slideIn 0.3s ease-out;">
+
+                            
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 25px; color: white;">
+                                <h3 id="view-event-title" style="margin: 0; font-size: 20px; font-weight: 600;">Event Details</h3>
+                                <div style="margin-top: 5px; opacity: 0.9; font-size: 14px;" id="view-event-date">Oct 24, 2025</div>
+                            </div>
+                    
+                            <div style="padding: 25px;">
+                                <div style="margin-bottom: 20px;">
+                                    <label style="color: #888; font-size: 12px; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Time</label>
+                                    <div id="view-event-time" style="font-size: 16px; color: #333; font-weight: 500;">All Day</div>
+                                </div>
+                    
+                                <div style="margin-bottom: 25px;">
+                                    <label style="color: #888; font-size: 12px; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Description & Notes</label>
+                                    <div id="view-event-desc" style="font-size: 15px; color: #555; line-height: 1.5; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                                        No notes provided.
+                                    </div>
+                                </div>
+                    
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #eee;">
+                                    <button onclick="closeViewModal()" class="btn" style="background: white; border: 1px solid #ddd; color: #555; padding: 10px 20px;">Close</button>
+                                    <button id="btn-delete-event" class="btn" style="background: #fee; color: #e74c3c; border: 1px solid #e74c3c; padding: 10px 20px; display: flex; align-items: center; gap: 8px;">
+                                        🗑️ Delete Event
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <style>
+                        @keyframes slideIn {
+                            from { transform: translateY(-20px); opacity: 0; }
+                            to { transform: translateY(0); opacity: 1; }
+                        }
+                    </style>        
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; font-size: 13px;">Date:</label>
+                            <input type="date" id="modal-date" class="chat-input" style="width: 100%;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; font-size: 13px;">Time:</label>
+                            <input type="time" id="modal-time" class="chat-input" style="width: 100%;">
+                        </div>
+                    </div>
+            
+                    <label style="font-weight: bold; font-size: 13px;">Description / Notes:</label>
+                    <textarea id="modal-desc" class="chat-input" style="width: 100%; height: 80px; resize: none; margin-bottom: 20px;" placeholder="Add details..."></textarea>
+                    
+                    <div style="text-align: right;">
+                        <button onclick="closeEventModal()" class="btn" style="background: #eee; color: #333; margin-right: 10px;">Cancel</button>
+                        <button onclick="saveEvent()" class="btn btn-primary">Save Event</button>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                /* Make the calendar look professional */
+                .fc-header-toolbar { margin-bottom: 20px !important; }
+                .fc-button-primary { background-color: #667eea !important; border-color: #667eea !important; }
+                .fc-daygrid-day { cursor: pointer; transition: background 0.2s; }
+                .fc-daygrid-day:hover { background: #f8f9fa; }
+            </style>
+<script>
+    // ==========================================
+    // 1. GLOBAL VARIABLES & INITIALIZATION
+    // ==========================================
+    let renewalsData = [];
+    let currentPlacementId = null;
+    let templates = [];
+    let calendar; // FullCalendar Instance
+
+    // Run on Startup
+    window.onload = async function() {
+        console.log("🚀 Broker Copilot Starting...");
+        await checkAuthStatus();
+        await loadStats();
+        await loadRenewals();
+        await loadTemplates();
+    };
+
+    // ==========================================
+    // 2. AUTHENTICATION & SYSTEM STATUS
+    // ==========================================
+    // ==========================================
+    // 2. AUTHENTICATION & SYSTEM STATUS (Single Bar Logic)
+    // ==========================================
+
+    async function checkAuthStatus() {
+        try {
+            const response = await fetch('/api/auth/status');
+            const data = await response.json();
+            
+            // 1. Toggle Login Button vs Logout Badge
+            const loginBtn = document.getElementById('google-login-btn');
+            const statusBadge = document.getElementById('google-status');
+            
+            if (data.logged_in) {
+                if(loginBtn) loginBtn.style.display = 'none';
+                if(statusBadge) statusBadge.style.display = 'inline-flex';
+                
+                // 2. Turn Mail & Calendar GREEN
+                updateIntegrationStatus('status-mail', true);
+                updateIntegrationStatus('status-cal', true);
+            } else {
+                if(loginBtn) loginBtn.style.display = 'inline-flex';
+                if(statusBadge) statusBadge.style.display = 'none';
+
+                // 3. Turn Mail & Calendar GREY
+                updateIntegrationStatus('status-mail', false);
+                updateIntegrationStatus('status-cal', false);
+            }
+        } catch (e) {
+            console.error("Auth check failed", e);
+        }
+    }
+
+    // Helper: Changes the dot color and background
+    function updateIntegrationStatus(elementId, isConnected) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        const dot = el.querySelector('.dot');
+        if (isConnected) {
+            el.style.borderColor = '#b2f5ea'; // Light Green Border
+            el.style.background = '#e6fffa';  // Light Green Bg
+            if(dot) dot.className = 'dot green';
+        } else {
+            el.style.borderColor = '#eee';    // Grey Border
+            el.style.background = '#f8f9fa';  // Grey Bg
+            if(dot) dot.className = 'dot grey';
+        }
+    }
+
+    // New Sync Button Logic
+    function triggerSync() {
+        const btn = document.querySelector('.btn-sync');
+        const statusText = document.getElementById('sync-status-text');
+        
+        if(btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳'; // Loading Spinner
+            
+            if(statusText) {
+                statusText.style.display = 'inline';
+                statusText.textContent = "Syncing live data...";
+            }
+
+            // Fake a 1.5s delay to look like it's working
+            setTimeout(() => {
+                loadRenewals(); // Reload your data
+                
+                btn.innerHTML = '✅';
+                if(statusText) statusText.textContent = "Data synchronized";
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    btn.innerHTML = '🔄 Sync';
+                    if(statusText) statusText.style.display = 'none';
+                }, 2000);
+            }, 1500);
+        }
+    }
+
+    // ==========================================
+    // 3. STATS & RENEWALS PIPELINE
+    // ==========================================
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/stats');
+            const data = await response.json();
+            document.getElementById('stat-total').textContent = data.total_renewals;
+            document.getElementById('stat-urgent').textContent = data.urgent_renewals;
+            document.getElementById('stat-premium').textContent = '$' + Math.round(data.total_premium_at_risk).toLocaleString();
+            document.getElementById('stat-avg').textContent = '$' + Math.round(data.avg_premium).toLocaleString();
+        } catch (error) { console.error('Error loading stats:', error); }
+    }
+
+    async function loadRenewals() {
+        const days = document.getElementById('days-filter').value;
+        const priority = document.getElementById('priority-filter').value;
+        const list = document.getElementById('renewals-list');
+        list.innerHTML = '<div class="loader"></div> Loading renewals...';
+
+        try {
+            const response = await fetch(`/api/renewals?days=${days}&priority=${priority}`);
+            renewalsData = await response.json();
+            list.innerHTML = '';
+            
+            if (renewalsData.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999;">No renewals found.</p>';
+                return;
+            }
+
+            renewalsData.forEach(renewal => {
+                list.appendChild(createRenewalCard(renewal));
+            });
+        } catch (error) {
+            list.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+        }
+    }
+
+    function createRenewalCard(renewal) {
+        const data = renewal.data;
+        const priority = renewal.priority;
+        const card = document.createElement('div');
+        card.className = 'renewal-card';
+        card.onclick = () => toggleCard(card, data.placement_id);
+        
+        const priorityClass = priority.priority_level === 'High' ? 'priority-high' : 
+                             priority.priority_level === 'Medium' ? 'priority-medium' : 'priority-low';
+        
+        card.innerHTML = `
+            <div class="renewal-header">
+                <div class="client-info"><h3>${data.client}</h3><p>${data.coverage} • ${data.carrier}</p></div>
+                <div class="priority-badge ${priorityClass}">${priority.priority_level} (${priority.total_score})</div>
+            </div>
+            <div class="renewal-details">
+                <div class="detail-item"><span class="label">Expiry</span><span class="value">${data.expiry_date}</span></div>
+                <div class="detail-item"><span class="label">Premium</span><span class="value">$${(data.premium||0).toLocaleString()}</span></div>
+                <div class="detail-item"><span class="label">Limit</span><span class="value">$${(data.limit||0).toLocaleString()}</span></div>
+            </div>
+            <div class="score-breakdown">
+                <h4>Score Breakdown</h4>
+                ${Object.entries(priority.factors).map(([key, f]) => `
+                    <div class="factor"><span class="factor-name">${key}: ${f.value}</span><strong>${f.score}</strong></div>
+                `).join('')}
+                <div style="text-align:center; margin-top:15px;">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); generateBrief('${data.placement_id}')">Generate Brief</button>
+                </div>
+            </div>`;
+        return card;
+    }
+
+    function toggleCard(card, placementId) {
+        const wasExpanded = card.classList.contains('expanded');
+        document.querySelectorAll('.renewal-card').forEach(c => c.classList.remove('expanded'));
+        if (!wasExpanded) {
+            card.classList.add('expanded');
+            currentPlacementId = placementId;
+        }
+    }
+
+    // ==========================================
+    // 4. BRIEF GENERATION & QA
+    // ==========================================
+    async function generateBrief(placementId) {
+        switchTab('brief');
+        const content = document.getElementById('brief-content');
+        content.innerHTML = '<div class="loader"></div> Generating brief...';
+
+        try {
+            const response = await fetch(`/api/brief/${placementId}`);
+            const brief = await response.json();
+            
+            if (brief.error) { content.innerHTML = `<p style="color:red">${brief.error}</p>`; return; }
+            
+            // Render the One-Pager
+            content.innerHTML = `
+    <div class="brief-section">
+        <h3>Client & Placement Overview</h3>
+        <p><strong>Client:</strong> ${brief.overview.client}</p>
+        <p><strong>Placement Name:</strong> ${brief.overview.placement_name}</p>
+        <p><strong>Placement ID:</strong> ${brief.overview.placement_id}</p>
+        <p><strong>Product Line:</strong> ${brief.overview.product_line}</p>
+        <p><strong>Coverage:</strong> ${brief.overview.coverage}</p>
+        <p><strong>Carrier:</strong> ${brief.overview.carrier}</p>
+        <p><strong>Client Segment:</strong> ${brief.overview.client_segment}</p>
+        <p><strong>Incumbent:</strong> ${brief.overview.incumbent}</p>
+    </div>
+
+    <div class="brief-section">
+        <h3>Policy Timeline & Ownership</h3>
+        <p><strong>Created At:</strong> ${brief.timeline.created_at}</p>
+        <p><strong>Created By:</strong> ${brief.timeline.created_by}</p>
+        <p><strong>Placement Specialist:</strong> ${brief.timeline.specialist}</p>
+        <p><strong>Submission Sent:</strong> ${brief.timeline.submission_sent}</p>
+        <p><strong>Response Received:</strong> ${brief.timeline.response_received}</p>
+        <p><strong>Effective Date:</strong> ${brief.timeline.effective_date}</p>
+        <p><strong>Expiry Date:</strong> ${brief.timeline.expiry_date}</p>
+        <p><strong>Days to Expiry:</strong> ${brief.timeline.days_to_expiry ?? 'N/A'}</p>
+    </div>
+
+    <div class="brief-section">
+        <h3>Financial Snapshot</h3>
+        <p><strong>Total Premium:</strong> $${brief.financials.total_premium.toLocaleString()}</p>
+        <p><strong>Coverage Premium:</strong> $${brief.financials.coverage_premium.toLocaleString()}</p>
+        <p><strong>TRIA Premium:</strong> $${brief.financials.tria_premium.toLocaleString()}</p>
+        <p><strong>Limit:</strong> $${brief.financials.limit.toLocaleString()}</p>
+        <p><strong>Participation %:</strong> ${brief.financials.participation_pct}%</p>
+        <p><strong>Commission %:</strong> ${brief.financials.commission_pct}%</p>
+        <p><strong>Commission Amount:</strong> $${brief.financials.commission_amount.toLocaleString()}</p>
+    </div>
+
+    <div class="brief-section">
+        <h3>Renewal & Market Status</h3>
+        <p><strong>Placement Status:</strong> ${brief.renewal_status.placement_status}</p>
+        <p><strong>Renewing Status:</strong> ${brief.renewal_status.renewing_status}</p>
+        <p><strong>Renewing Code:</strong> ${brief.renewal_status.renewing_status_code}</p>
+        <p><strong>Declination Reason:</strong> ${brief.renewal_status.declination_reason || '—'}</p>
+        <p><strong>Non-Admitted:</strong> ${brief.renewal_status.non_admitted}</p>
+        <p><strong>Program Product:</strong> ${brief.renewal_status.program_product}</p>
+    </div>
+
+    <div class="brief-section">
+        <h3>Claims & Risk Performance</h3>
+        <p><strong>Claims Count:</strong> ${brief.summary.claims_history.data.claims_count}</p>
+        <p><strong>Total Claims:</strong> $${brief.summary.claims_history.data.claims_total.toLocaleString()}</p>
+        <p><strong>Loss Ratio:</strong> ${(brief.summary.claims_history.data.loss_ratio * 100).toFixed(1)}%</p>
+    </div>
+
+    <div class="brief-section">
+        <h3>Priority & Recommended Actions</h3>
+        <p><strong>Priority Level:</strong> ${brief.priority.priority_level}</p>
+        <p><strong>Total Score:</strong> ${brief.priority.total_score} / ${brief.priority.max_score}</p>
+        <ul>
+            ${brief.recommended_actions.map(a => `<li>${a}</li>`).join('')}
+        </ul>
+    </div>
+
+    <a href="${brief.summary.policy_details.source.record_link}" 
+       target="_blank" 
+       class="source-link">
+        📎 View Source Record
+    </a>
+`;
+
+            currentPlacementId = placementId;
+        } catch (error) { content.innerHTML = `<p style="color:red">Error: ${error.message}</p>`; }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const question = input.value.trim();
+        if (!question) return;
+
+        const messages = document.getElementById('chat-messages');
+        messages.innerHTML += `<div class="message user"><strong>You:</strong><br>${question}</div>`;
+        input.value = '';
+        
+        try {
+            const res = await fetch('/api/qa', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ question, context: {placement_id: currentPlacementId} })
+            });
+            const data = await res.json();
+            const formattedAnswer = data.answer
+  .replace(/\n/g, "<br>")
+  .replace(/•/g, "<br>•");
+
+messages.innerHTML += `
+  <div class="message bot">
+    <strong>Copilot:</strong><br>${formattedAnswer}
+  </div>
+`;
+
+            messages.scrollTop = messages.scrollHeight;
+        } catch (e) { console.error(e); }
+    }
+
+    // ==========================================
+    // 5. EMAIL SYSTEM (EDITABLE)
+    // ==========================================
+    async function loadConversationContext(placementId) {
+    const container = document.getElementById('conversation-context');
+    const badge = document.getElementById('conversation-badge');
+    const list = document.getElementById('conversation-emails');
+
+    if (!placementId) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const res = await fetch(`/api/emails/${placementId}`);
+    const data = await res.json();
+
+    // Badge
+    badge.textContent = data.label;
+    badge.style.background =
+        data.state === 'CARRIER_CONSTRAINT' ? '#fee' :
+        data.state === 'CLIENT_REPLIED' ? '#fff3cd' :
+        '#e6fffa';
+
+    badge.style.color =
+        data.state === 'CARRIER_CONSTRAINT' ? '#c0392b' :
+        data.state === 'CLIENT_REPLIED' ? '#856404' :
+        '#065f46';
+
+    // Emails
+    if (data.emails.length === 0) {
+        list.innerHTML = `<p style="color:#777;">No prior emails for this placement.</p>`;
+    } else {
+        list.innerHTML = data.emails.map(e => `
+            <div style="margin-bottom:12px;">
+                <div style="font-weight:600;">${e.subject || '(No subject)'}</div>
+                <div style="font-size:12px; color:#888;">${e.date || ''}</div>
+                <div style="font-size:14px; color:#444;">${e.body || ''}</div>
+            </div>
+        `).join('');
+    }
+
+    container.style.display = 'block';
+}
+
+    async function loadTemplates() {
+        try {
+            const res = await fetch('/api/templates');
+            templates = await res.json();
+            const select = document.getElementById('template-select');
+            select.innerHTML = '<option value="">-- Choose Template --</option>';
+            templates.forEach(t => select.innerHTML += `<option value="${t.id}">${t.name}</option>`);
+        } catch (e) { console.error(e); }
+    }
+
+    async function renderTemplate() {
+        const tId = document.getElementById('template-select').value;
+        const pId = document.getElementById('placement-id-input').value;
+        if (!tId || !pId) return alert('Select template & Enter Placement ID');
+
+        loadConversationContext(pId);
+        
+        // Show Editor
+        document.getElementById('email-editor').style.display = 'block';
+        document.getElementById('email-body').value = "Generating...";
+
+        const tmpl = templates.find(t => t.id === tId);
+        const res = await fetch('/api/templates/render', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ template: tmpl.body, template_id: tId, placement_id: pId })
+        });
+        
+        const data = await res.json();
+        if(data.rendered) {
+            // Render subject with placement data
+let renderedSubject = tmpl.subject || '';
+
+const subjectReplacements = {
+    "{{client_name}}": data.context?.client || '',
+    "{{coverage}}": data.context?.coverage || '',
+    "{{expiry_date}}": data.context?.expiry_date || ''
+};
+
+for (const key in subjectReplacements) {
+    renderedSubject = renderedSubject.replaceAll(key, subjectReplacements[key]);
+}
+
+document.getElementById('email-subject').value = data.rendered_subject || '';
+
+
+            document.getElementById('email-body').value = data.rendered;
+        }
+    }
+
+    async function sendEmail() {
+        const to = prompt("Client Email Address:");
+        if (!to) return;
+
+        const sub = document.getElementById('email-subject').value;
+        const body = document.getElementById('email-body').value;
+        const status = document.getElementById('email-status');
+        
+        status.style.display = 'inline';
+        status.textContent = 'Sending...';
+
+        try {
+            const res = await fetch('/api/email/send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ to, subject: sub, body })
+            });
+            const d = await res.json();
+            if(d.status === 'sent') {
+                status.style.color = 'green';
+                status.textContent = '✅ Sent!';
+            } else {
+                status.style.color = 'red';
+                status.textContent = '❌ Error';
+            }
+        } catch (e) { alert("Network Error"); }
+    }
+
+    // ==========================================
+    // 6. CALENDAR (FullCalendar + Modal)
+    // ==========================================
+    // ==========================================
+// CALENDAR INITIALIZATION & LOGIC
+// ==========================================
+
+// ==========================================
+// FULL CALENDAR LOGIC (Crash-Proof Version)
+// ==========================================
+
+// Global variable must be defined here
+// Removed duplicate declaration of isEventClicking
+
+function initCalendar() {
+    console.log("🚀 Initializing Calendar...");
+
+    // 1. Try to find the container (Check both IDs)
+    var calendarEl = document.getElementById('calendar-root');
+    if (!calendarEl) {
+        console.warn("⚠️ 'calendar-root' not found, checking 'calendar'...");
+        calendarEl = document.getElementById('calendar');
+    }
+
+    if (!calendarEl) {
+        alert("❌ CRITICAL ERROR: Calendar DIV is missing from HTML!");
+        return;
+    }
+
+    // 2. Clear any old calendar if it exists to prevent duplicates
+    if (calendar) { 
+        // destroy() might fail if calendar wasn't fully built, so we try-catch
+        try { calendar.destroy(); } catch(e) {} 
+    }
+
+    // 3. Create New Instance
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: { 
+            left: 'prev,next today', 
+            center: 'title', 
+            right: 'dayGridMonth,timeGridWeek' 
+        },
+        height: 650, 
+        contentHeight: 650,
+        editable: true,
+        events: '/api/calendar',
+        
+        // --- CLICK EMPTY DATE (Add New) ---
+        dateClick: function(info) { 
+            // If lock is active, STOP.
+            openEventModal(info.dateStr); 
+        },
+        
+        // --- CLICK EVENT (View Details) ---
+        eventClick: function(info) {
+    info.jsEvent.preventDefault();
+    info.jsEvent.stopPropagation();
+
+    const evt = info.event;
+    const props = evt.extendedProps || {};
+
+    // Populate modal
+    document.getElementById('view-event-title').textContent = evt.title;
+
+    if (evt.start) {
+        document.getElementById('view-event-date').textContent =
+            evt.start.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+        const timeText =
+            evt.start.getHours() || evt.start.getMinutes()
+                ? evt.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'All Day';
+
+        document.getElementById('view-event-time').textContent = timeText;
+    }
+
+    document.getElementById('view-event-desc').textContent =
+        props.description || 'No notes.';
+
+    // SHOW MODAL IMMEDIATELY (NO DELAY)
+    document.getElementById('viewEventModal').style.display = 'block';
+}
+,
+        
+        loading: function(isLoading) {
+            if (!isLoading) console.log("✅ Calendar Events Loaded.");
+        }
+    });
+
+    calendar.render();
+    console.log("✅ Render Command Sent.");
+    
+    // Resize fix
+    setTimeout(function() { calendar.updateSize(); }, 200);
+}
+
+// ==========================================
+// HELPER FUNCTIONS FOR THE VIEW MODAL
+// ==========================================
+
+function closeViewModal() {
+    document.getElementById('viewEventModal').style.display = 'none';
+}
+
+// Close modals if user clicks outside the box (Background click)
+window.onclick = function(event) {
+    const viewModal = document.getElementById('viewEventModal');
+    const addModal = document.getElementById('eventModal');
+    
+    // Only close if the user clicks the DARK BACKGROUND (the overlay)
+    // Do NOT close if they click inside the white box
+    if (event.target === viewModal) {
+        viewModal.style.display = "none";
+    }
+    if (event.target === addModal) {
+        addModal.style.display = "none";
+    }
+}
+
+    function openEventModal(dateStr) {
+        document.getElementById('modal-title').value = '';
+        document.getElementById('modal-time').value = '';
+        document.getElementById('modal-desc').value = '';
+        document.getElementById('modal-date').value = dateStr || new Date().toISOString().split('T')[0];
+        document.getElementById('eventModal').style.display = 'block';
+    }
+
+    function closeEventModal() {
+        document.getElementById('eventModal').style.display = 'none';
+    }
+
+    async function saveEvent() {
+        const title = document.getElementById('modal-title').value;
+        const date = document.getElementById('modal-date').value;
+        const time = document.getElementById('modal-time').value;
+        const desc = document.getElementById('modal-desc').value;
+
+        if (!title || !date) return alert("Title required");
+
+        await fetch('/api/calendar/events', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ title, date, time, description: desc })
+        });
+
+        closeEventModal();
+        calendar.refetchEvents();
+    }
+
+    async function deleteEvent(evt) {
+        const dateStr = evt.startStr.split('T')[0];
+        await fetch(`/api/calendar/events/${dateStr}/${evt.id}`, { method: 'DELETE' });
+        evt.remove();
+    }
+
+    async function saveEvent() {
+    const title = document.getElementById('modal-title').value;
+    const date = document.getElementById('modal-date').value;
+    const time = document.getElementById('modal-time').value;
+    const desc = document.getElementById('modal-desc').value;
+
+    console.log("Attempting to save:", { title, date, time, desc });
+
+    if (!title || !date) {
+        alert("⚠️ Please enter both a Title and a Date.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/calendar/events', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                title: title,
+                date: date,
+                time: time,
+                description: desc
+            })
+        });
+
+        if (response.ok) {
+            alert("✅ Event Saved! Refreshing calendar...");
+            closeEventModal();
+            // Refresh logic
+            if (calendar) {
+                calendar.refetchEvents();
+            } else {
+                location.reload(); // Fallback if calendar var is broken
+            }
+        } else {
+            const errText = await response.text();
+            alert("❌ Server Error: " + errText);
+        }
+    } catch (e) {
+        alert("❌ Network Error: Is the python server running?\n" + e.message);
+    }
+}
+
+    // ==========================================
+    // 7. TAB SWITCHING (Handles Calendar Render)
+    // ==========================================
+    function switchTab(tabName) {
+    // 1. Hide everything
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+    const convo = document.getElementById('conversation-context');
+
+if (tabName === 'email') {
+    convo.style.display = 'block';
+} else {
+    convo.style.display = 'none';
+}
+
+    // RESET EMAIL EDITOR WHEN LEAVING TEMPLATES TAB
+if (tabName !== 'templates') {
+    const editor = document.getElementById('email-editor');
+    if (editor) editor.style.display = 'none';
+}
+
+    // 2. Show selected
+    const btn = document.querySelector(`button[onclick="switchTab('${tabName}')"]`);
+    if(btn) btn.classList.add('active');
+    
+    const panel = document.getElementById(`${tabName}-panel`);
+    if(panel) panel.classList.add('active');
+
+    // 3. TARGET THE NEW ID
+    if (tabName === 'calendar') {
+        setTimeout(() => {
+            // Check if library is loaded
+            if (typeof FullCalendar === 'undefined') {
+                alert("CRITICAL ERROR: FullCalendar library is missing from <head>!");
+                return;
+            }
+            
+            if (calendar) {
+                calendar.render(); 
+                calendar.updateSize(); 
+            } else {
+                initCalendar();
+            }
+        }, 100);
+    }
+}
+</script>
+</body>
+</html>
