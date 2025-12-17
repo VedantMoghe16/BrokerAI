@@ -49,7 +49,39 @@ CLIENT_SECRETS_FILE = "client_secret.json"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
+def summarize_email_body(email_body):
+        """
+        Generates a short, plain-text summary of an email body.
+        """
+        if not email_body or len(email_body.strip()) < 30:
+            return ""
 
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You summarize insurance-related emails for brokers. "
+                            "Return 1–2 concise sentences in plain text. "
+                            "Do not use markdown, bullets, or formatting symbols."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Summarize this email:\n\n{email_body[:4000]}"
+                    }
+                ],
+                temperature=0.2,
+                max_tokens=120
+            )
+
+            return response.choices[0].message.content.strip()
+
+        except Exception as e:
+            print(f"⚠️ Email summarization failed: {e}")
+            return ""
 
 # ==================== CSV LOADER & UTILS ====================
 
@@ -378,6 +410,8 @@ class LLMEngine:
         except Exception as e:
             return f"Error: {str(e)}"
 
+    
+
 @staticmethod
 def answer_question_with_context(query, policy_data, claims_data, email_data):
     try:
@@ -401,7 +435,8 @@ def answer_question_with_context(query, policy_data, claims_data, email_data):
             "Recent_Emails": [
                 {
                     "subject": e.get("subject"),
-                    "date": e.get("date")
+                    "date": e.get("date"),
+                    "body": e["data"].get("body")
                 }
                 for e in email_data[:3]
             ]
@@ -416,8 +451,10 @@ def answer_question_with_context(query, policy_data, claims_data, email_data):
                 {
                     "role": "system",
                     "content": (
-                        "You are a Broker Copilot. Respond in a structured format with short sections "
-                        "and bullet points. Do not write long paragraphs."
+                        "You are a Broker Copilot chatbot. Respond clearly and professionally, "
+                        "as if assisting a broker in real time. Keep the tone neutral, helpful, "
+                        "and business-friendly. Use sections and bullet points but keep it detailed. "
+                        "Avoid sounding like a formal report or audit note."
                     )
                 },
                 {
@@ -429,22 +466,15 @@ Context:
 Question:
 {query}
 
-Return in this exact format:
-
-TITLE:
-<one line>
-
-KEY INSIGHTS:
-- point
-- point
-
-RECOMMENDED ACTIONS:
-- action
-- action
-
-RATIONALE:
-- reason
-- reason
+Respond like a helpful Broker Copilot assisting in real time.
+Start with a brief, direct summary that answers the question.
+Then, where useful, include concise bullet points to highlight key observations, suggested next steps, or important context.
+Use headings only if they genuinely improve clarity, and feel free to adapt or omit them.
+Do not follow a fixed template, do not force a specific number of points, and avoid sounding like a formal report.
+Keep the tone professional, practical, and conversational.
+Return the response in plain text only.
+Do not use Markdown or any formatting symbols such as *, **, #, ###, or backticks.
+Use simple sentences and hyphenated bullet points only if needed.
 """
                 }
             ],
@@ -1102,7 +1132,7 @@ def get_emails_for_placement(placement_id):
             {
                 "date": e["data"].get("date"),
                 "subject": e["data"].get("subject"),
-                "body": e["data"].get("body")
+                "summary": summarize_email_body(e["data"].get("body"))
             }
             for e in emails_sorted
         ]

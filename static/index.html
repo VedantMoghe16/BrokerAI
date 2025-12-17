@@ -499,6 +499,11 @@
             border-color: #2ecc71 !important;
         }
     </style>
+    <style>
+  #conversation-context {
+    display: none;
+  }
+</style>
 </head>
 <body>
     <div class="container">
@@ -680,10 +685,7 @@
 
     <div id="conversation-emails"
          style="background:#f8f9fa; border-radius:10px; padding:15px; max-height:220px; overflow-y:auto;">
-    </div>
-    #conversation-context {
-        display: none;
-    }
+    
     
 </div>
 
@@ -1126,7 +1128,7 @@ messages.innerHTML += `
             <div style="margin-bottom:12px;">
                 <div style="font-weight:600;">${e.subject || '(No subject)'}</div>
                 <div style="font-size:12px; color:#888;">${e.date || ''}</div>
-                <div style="font-size:14px; color:#444;">${e.body || ''}</div>
+                <div style="font-size:14px; color:#444;">${e.summary || ''}</div>
             </div>
         `).join('');
     }
