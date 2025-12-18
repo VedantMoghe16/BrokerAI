@@ -436,7 +436,7 @@ def answer_question_with_context(query, policy_data, claims_data, email_data):
                 {
                     "subject": e.get("subject"),
                     "date": e.get("date"),
-                    "body": e.get("body")
+                    "body": e["data"].get("body")
                 }
                 for e in email_data[:3]
             ]
@@ -1196,4 +1196,4 @@ def delete_calendar_event(date_str, event_id):
 
 if __name__ == '__main__':
     print("🚀 BROKER COPILOT AI SERVER STARTED")
-    app.run(debug=False, port=5000)
+    app.run(host="127.0.0.1", port=5050, debug=False)
