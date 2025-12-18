@@ -436,7 +436,7 @@ def answer_question_with_context(query, policy_data, claims_data, email_data):
                 {
                     "subject": e.get("subject"),
                     "date": e.get("date"),
-                    "body": e["data"].get("body")
+                    "body": e.get("body")
                 }
                 for e in email_data[:3]
             ]
