@@ -48,7 +48,6 @@ SCOPES = [
 CLIENT_SECRETS_FILE = "client_secret.json"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_API_KEY = "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"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 def summarize_email_body(email_body):
