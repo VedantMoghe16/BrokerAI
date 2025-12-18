@@ -702,7 +702,7 @@
                 </div>
             </div>
 
-       
+        </div>
 
             <div id="calendar-panel" class="content-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -795,6 +795,9 @@
                 .fc-daygrid-day:hover { background: #f8f9fa; }
             </style>
 <script>
+    function loadTemplate() {
+    renderTemplate();
+}
     // ==========================================
     // 1. GLOBAL VARIABLES & INITIALIZATION
     // ==========================================
@@ -802,6 +805,7 @@
     let currentPlacementId = null;
     let templates = [];
     let calendar; // FullCalendar Instance
+    let calendarInitialized = false;
 
     // Run on Startup
     window.onload = async function() {
