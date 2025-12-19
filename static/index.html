@@ -1047,9 +1047,7 @@
     </div>
 
     <div class="brief-section">
-        <h3>Priority & Recommended Actions</h3>
-        <p><strong>Priority Level:</strong> ${brief.priority.priority_level}</p>
-        <p><strong>Total Score:</strong> ${brief.priority.total_score} / ${brief.priority.max_score}</p>
+        <h3>Recommended Actions</h3>
         <ul>
             ${brief.recommended_actions.map(a => `<li>${a}</li>`).join('')}
         </ul>
