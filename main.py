@@ -472,6 +472,7 @@ Start with a brief, direct summary that answers the question.
 Then, where useful, include concise bullet points to highlight key observations, suggested next steps, or important context.
 Use headings only if they genuinely improve clarity, and feel free to adapt or omit them.
 Do not follow a fixed template, do not force a specific number of points, and avoid sounding like a formal report.
+At the end, give your confidence in this answer as a number between 0 and 100 in percentage
 Keep the tone professional, practical, and conversational.
 Return the response in plain text only.
 Do not use Markdown or any formatting symbols such as *, **, #, ###, or backticks.
