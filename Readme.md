@@ -122,7 +122,7 @@ Broker Copilot introduces a **stateless orchestration layer** that:
              │         │         │         │
       ┌──────▼───┐ ┌──▼─────┐ ┌──▼──────┐ ┌──▼────────┐
       │   CRM    │ │ Email  │ │ Claims  │ │ Calendar  │
-      │  (CSV)   │ │ (Mock) │ │ (Mock)  │ │ (User)   │
+      │  (CSV)   │ │ (User) │ │ (CSV)  │ │ (User)   │
       └──────────┘ └────────┘ └─────────┘ └───────────┘
 ```
 
